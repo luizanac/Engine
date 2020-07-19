@@ -1,2 +1,2 @@
 # Engine
-C++ game engine to study
+C++ game engine
