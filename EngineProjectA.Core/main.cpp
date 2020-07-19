@@ -1,42 +1,45 @@
 #include <iostream>
 #include "src/Graphics/Window.h"
 
-
+using namespace Engine;
+using namespace Graphics;
+#define INITIAL_WIDTH 1024
+#define INITIAL_HEIGHT 600
 int main(void) {
-	using namespace Engine;
-	using namespace Graphics;
-
-	Window window("Engine", 1366, 768);
 
 
-	GLuint vao;
-	glGenVertexArrays(1, &vao);
-	glBindVertexArray(vao);
+	Window* window = new Window("Engine", INITIAL_WIDTH, INITIAL_HEIGHT);
+	/*for (int i = 0; i < window->GetHeight(); i++)
+		for (int j = 0; j < window->GetWidth(); j++)
+		{
+			pixels[(j + window->GetWidth() * i) * 3 + 0] = 1.0f;
+			pixels[(j + window->GetWidth() * i) * 3 + 1] = 0.0f;
+			pixels[(j + window->GetWidth() * i) * 3 + 2] = 0.0f;
+		}*/
 
-	while (!window.Closed()) {
-		window.Clear();
 
-		if(window.IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT))
-			std::cout << "'Mouse' pressed!" << std::endl;
+	static int i = 0;
+	static int j = 0;
+	while (!window->Closed()) {
+		window->Clear();
 
 		double x, y;
-		window.GetMousePosition(x, y);
+		window->GetMousePosition(x, y);
 		std::cout << "x: " << x << "y: " << y << std::endl;
+		float* pixels = new float[(int)(window->GetWidth() * window->GetHeight() * 3)]();
+		if (window->IsMouseButtonPressed(GLFW_MOUSE_BUTTON_LEFT)) {
+			pixels[(int)((window->GetWidth() - x) * (window->GetHeight() - y)) * 3 + 0] = 0.0f;
+			pixels[(int)((window->GetWidth() - x) * (window->GetHeight() - y)) * 3 + 1] = 0.0f;
+			pixels[(int)((window->GetWidth() - x) * (window->GetHeight() - y)) * 3 + 2] = 1.0f;
+		}
 
-		glBegin(GL_TRIANGLES);
+		glDrawPixels(window->GetWidth(), window->GetHeight(), GL_RGB, GL_FLOAT, pixels);
 
-		glVertex2f(-0.5f, -0.5f);
-		glVertex2f(0.0f, 0.5f);
-		glVertex2f(0.5f, -0.5f);
+		window->Update();
+		delete[] pixels;
 
-		glEnd();
-
-		glDrawArrays(GL_ARRAY_BUFFER, 0, 6);
-
-		window.Update();
 	}
+	window->~Window();
 
-	window.~Window();
-	
 	return 0;
 }
