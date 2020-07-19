@@ -1,7 +1,5 @@
 #include "Window.h"
 #include <iostream>
-#include <GLFW/glfw3.h>
-
 
 namespace Engine {
 	namespace Graphics {
@@ -16,11 +14,58 @@ namespace Engine {
 
 			if (!Init())
 				glfwTerminate();
+
+			for (int i = 0; i < MAX_KEYS; i++)
+				_keys[i] = false;
+
+			for (int i = 0; i < MAX_BUTTONS; i++)
+				_mouseButtons[i] = false;
 		}
 
 		Window::~Window()
 		{
 			glfwTerminate();
+		}
+
+		bool Window::IsKeyPressed(unsigned int keyCode) const
+		{
+			if (keyCode >= MAX_KEYS)
+				return false;
+
+			return _keys[keyCode];
+		}
+
+		bool Window::IsMouseButtonPressed(unsigned int button) const
+		{
+			if (button >= MAX_BUTTONS)
+				return false;
+
+			return _mouseButtons[button];
+		}
+
+		void Window::GetMousePosition(double& x, double& y) const
+		{
+			x = _x;
+			y = _y;
+		}
+
+		void KeyCallback(GLFWwindow* window, int key, int scanCode, int action, int mods)
+		{
+			Window* win = (Window*)glfwGetWindowUserPointer(window);
+			win->_keys[key] = action != GLFW_RELEASE;
+		}
+
+		void MouseButtonCallback(GLFWwindow* window, int button, int action, int mods)
+		{
+			Window* win = (Window*)glfwGetWindowUserPointer(window);
+			win->_mouseButtons[button] = action != GLFW_RELEASE;
+		}
+
+		void CursourPositionCallback(GLFWwindow* window, double x, double y)
+		{
+			Window* win = (Window*)glfwGetWindowUserPointer(window);
+			win->_x = x;
+			win->_y = y;
 		}
 
 		bool Window::Init() {
@@ -37,8 +82,18 @@ namespace Engine {
 			}
 
 			glfwMakeContextCurrent(_window);
+			glfwSetWindowUserPointer(_window, this);
 			glfwSetWindowSizeCallback(_window, WindowResize);
+			glfwSetKeyCallback(_window, KeyCallback);
+			glfwSetMouseButtonCallback(_window, MouseButtonCallback);
+			glfwSetCursorPosCallback(_window, CursourPositionCallback);
 
+			if (glewInit() != GLEW_OK) {
+				std::cout << "Failed to initialize GLEW!" << std::endl;
+				return false;
+			}
+
+			std::cout << glGetString(GL_VERSION) << std::endl;
 			return true;
 		}
 
@@ -59,8 +114,8 @@ namespace Engine {
 			return glfwWindowShouldClose(_window) == 1;
 		}
 
-		void WindowResize(GLFWwindow *window, int width, int height) {
+		void WindowResize(GLFWwindow* window, int width, int height) {
 			glViewport(0, 0, width, height);
-		}
+		}		
 	}
 }
